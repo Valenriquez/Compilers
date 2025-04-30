@@ -300,7 +300,7 @@ def p_error(p):
 # Construir el parser
 parser = yacc.yacc()
 
-# Ejemplo
+# TEST CASES
 if __name__ == '__main__':
     data = '''program example;
       var x, y: int;
