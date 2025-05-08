@@ -1,81 +1,16 @@
-import ply.lex as lex
 import ply.yacc as yacc
+from scanner import tokens
 
 """
-Hice la elección de PLY (Python Lex-Yacc) 
-como herramienta para implementar un scanner 
-(analizador léxico) y parser (analizador sintáctico)
-en el procesamiento de lenguajes. PLY es una 
-implementación popular de las herramientas 
-tradicionales lex y yacc, adaptada al ecosistema Python.
+Un AST (Abstract Syntax Tree, 
+o Árbol de Sintaxis Abstracta) es una 
+estructura de datos en forma de árbol que 
+representa la estructura lógica de un programa, 
+despojando los detalles puramente sintácticos
+(como paréntesis extra, puntos y comas,
+comentarios) y quedándose solo con los elementos
+significativos.
 """
-
-# Lexer
-
-# Palabras reservadas
-reserved = {
-    'program': 'PROGRAM',
-    'var': 'VAR',
-    'int': 'INT',
-    'float': 'FLOAT',
-    'void': 'VOID',
-    'main': 'MAIN',
-    'end': 'END',
-    'print': 'PRINT',
-    'while': 'WHILE',
-    'do': 'DO',
-    'if': 'IF',
-    'else': 'ELSE'
-}
-
-# Tokens
-tokens = [
-    'ID', 'CTE_INT', 'CTE_FLOAT', 'CTE_STRING', 'NE',
-] + list(reserved.values())
-
-# literales
-literals = [';', ',', ':', '(', ')', '{', '}', '[', ']',
-            '+', '-', '*', '/', '>', '<', '=']
-
-# expresiones regulares
-t_CTE_STRING = r'"([^\\\n]|(\\.))*?"'
-
-def t_CTE_FLOAT(t):
-    r'\d+\.\d+'
-    t.value = float(t.value)
-    return t
-
-def t_CTE_INT(t):
-    r'\d+'
-    t.value = int(t.value)
-    return t
-
-# !=
-def t_NE(t):
-    r'!='
-    return t
-
-# identificadores y palabras reservadas
-def t_ID(t):
-    r'[a-zA-Z_][a-zA-Z0-9_]*'
-    t.type = reserved.get(t.value, 'ID')
-    return t
-
-# caracteres ignorados
-t_ignore = ' \t\r'
-
-#lineas nuevas
-def t_newline(t):
-    r"\n+"
-    t.lexer.lineno += len(t.value)
-
-# errores
-def t_error(t):
-    print(f"Carácter ilegal '{t.value[0]}' en la linea {t.lineno}")
-    t.lexer.skip(1)
-
-# Construir lexer
-lexer = lex.lex()
 
 # Parser
 # Reglas para manejar ambigûedad
@@ -85,40 +20,99 @@ precedence = (
     ('left', '*', '/')
 )
 
+"""
+Programa id ; main Body end
+Programa id VARS main Body end 
+Programa id VARS FUNCS* main Body end 
+
+#Body 
+{ STATEMENT }
+"""
+
 # Simbolo de comienzo
 def p_program(p):
     'program : PROGRAM ID ";" vars funcs MAIN body END'
-    p[0] = ('program', p[2], p[4], p[5], p[7])
+    p[0] = ('programa',   # etiqueta del nodo raíz
+    p[2],         # nombre del programa
+    p[4],         # lista de vars
+    p[5],         # lista de funcs
+    p[7])         # cuerpo (sentencias)
 
-# Vars - cero o más
-def p_vars(p):
-    '''vars : VAR id_list ":" type ";" vars
-             | empty'''
-    if len(p) > 2:
-        p[0] = [('var_decl', p[2], p[4])] + p[6]
-    else:
-        p[0] = []
 
-# Id list
+"""
+Pueden ser varios IDS vara las variables
+"""
 def p_id_list(p):
-    '''id_list : ID id_list_tail'''
-    p[0] = [p[1]] + p[2]
+    'id_list : ID id_list_tail'
+    # p[1]: El primer id, como el token ID
+    # lo que devuelve el id_list_tail
+    #  p[0] = [ p[1] ] + p[2]
+    p[0] = [ p[1] ] + p[2]
 
 def p_id_list_tail(p):
-    '''id_list_tail : "," ID id_list_tail
-                    | empty'''
-    if len(p) > 2:
-        p[0] = [p[2]] + p[3]
+    '''id_list_tail : ',' ID id_list_tail | empty'''
+    if len(p) == 4:
+        p[0] = [ p[2] ] + p[3]  # p[2] es el siguiente ID, p[3] es la lista restante
     else:
         p[0] = []
+        
+"""
+var id : TYPE ;
+var id ,* id : TYPE ;
+var id ,* id : TYPE ;  id ,* id : TYPE ;*
+"""
+# var id ,* id : TYPE ;
+# ----------------
+# 2) var_decl: id_list ':' TYPE
+# ----------------
+def p_var_decl(p):
+    'var_decl : id_list COLON TYPE'
+    # build a tuple or AST node however you like:
+    p[0] = ('var_decl', p[1], p[3])
 
-# Type
+# ----------------
+# 3) var_decls: var_decl ';' ( var_decl ';' )* 
+# ----------------
+def p_var_decls(p):
+    '''var_decls : var_decl ';'
+                 | var_decl ';' var_decls'''
+    if len(p) == 3:
+        # only one declaration
+        p[0] = [ p[1] ]
+    else:
+        # one declaration + the rest
+        p[0] = [ p[1] ] + p[3]
 
+# ----------------  
+# 4) vars: the whole block introduced by the keyword VAR
+# ----------------
+def p_vars(p):
+    'vars : VAR var_decls'
+    p[0] = p[2]
+
+# ----------------
+# 5) empty rule (for optional parts)
+# ----------------
+def p_empty(p):
+    'empty :'
+    p[0] = None
+
+"""
+TYPE =  int or float
+"""
+# Type 
 def p_type(p):
     '''type : INT
              | FLOAT'''
-    p[0] = p[1]
+    p[0] = ('type', p[1])
 
+"""
+FUNCS = VOID ID (F') [V' BODY] ;
+F' = ID : TYPE F'' F''' or empty
+F'' = , or empty
+F''' = id : TYPE F'' F'''  or empty
+V' = VARS V' or empty
+"""
 #  Funciones - cero o más
 def p_funcs(p):
     '''funcs : func funcs
@@ -150,11 +144,23 @@ def p_params_tail(p):
     else:
         p[0] = []
 
+"""
+BODY = { S' }
+S' = STATEMENTS or empty
+"""
 # Body 
 def p_body(p):
     'body : "{" stmt_list "}"'
     p[0] = p[2]
 
+"""
+STATEMENT ... 
+| assign
+| condition
+| cycle
+| f_call
+| print_stmt
+"""
 # Statement  - cero o más
 def p_stmt_list(p):
     '''stmt_list : statement stmt_list
@@ -173,12 +179,21 @@ def p_statement(p):
                  | print_stmt'''
     p[0] = p[1]
 
+"""
+ASSIGN = id = EXPRESSION ;
+"""
 # Assignment
 def p_assign(p):
     'assign : ID "=" expression ";"'
     p[0] = ('assign', p[1], p[3])
 
 # Print 
+"""
+PRINT = PRINT ( P' ) ;
+P' = EXPRESSION P'' 
+P'' = , C' or empty 
+C' CTE.STRING or empty 
+"""
 def p_print_stmt(p):
     'print_stmt : PRINT "(" print_list ")" ";"'
     p[0] = ('print', p[3])
@@ -200,15 +215,26 @@ def p_print_list_tail(p):
     else:
         p[0] = []
 
-# While 
+"""
+CYCLE ...
+WHILE ( EXPRESSION ) do CUERPO ;
+"""
 def p_cycle(p):
     'cycle : WHILE "(" expression ")" DO body ";"'
     p[0] = ('while', p[3], p[6])
 
-# If 
+"""
+CONDITION ...
+IF ( EXPRESSION ) BODY C' ;
+C ' = else BODY or empty
+"""
 def p_condition(p):
     'condition : IF "(" expression ")" body else_part ";"'
-    p[0] = ('if', p[3], p[5], p[6])
+    p[0] = (
+        'if',  
+        p[3],  # expression 
+        p[5],  # body 
+        p[6])  # else part 
 
 def p_else_part(p):
     '''else_part : ELSE body
@@ -218,7 +244,12 @@ def p_else_part(p):
     else:
         p[0] = None
 
-# Function 
+"""
+F CALL ...
+ID ( F' ) ;
+F' = EXPRESSION F'' or empty 
+F'' = , EXPRESSION F'' or empty
+"""
 def p_f_call(p):
     'f_call : ID "(" expr_list ")" ";"'
     p[0] = ('call', p[1], p[3])
@@ -258,7 +289,7 @@ def p_simple_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = ('binop', p[2], p[1], p[3])
+        p[0] = (p[2], p[1], p[3])
 
 # '*' and '/'
 def p_term(p):
@@ -270,7 +301,13 @@ def p_term(p):
     else:
         p[0] = ('binop', p[2], p[1], p[3])
 
-# Factor
+
+"""
+FACTOR ... 
+F ' or  ( EXPRESSION )
+F ' = + or - F' F'' 
+F'' = ID or CTE
+"""
 def p_factor(p):
     '''factor : '(' expression ')'
               | '-' factor
@@ -297,16 +334,9 @@ def p_error(p):
     else:
         print("Syntax error at EOF")
 
+# Si usas la función tokenize() que te propuse:
+
+
+
 # Construir el parser
 parser = yacc.yacc()
-
-# TEST CASES
-if __name__ == '__main__':
-    data = '''program example;
-      var x, y: int;
-      void foo(a: int) [ var z: float; { x = a + z; } ];
-      main { print(x, "hello"); }
-    end'''
-    result = parser.parse(data)
-    print(result)
-
