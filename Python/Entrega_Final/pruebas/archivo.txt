@@ -1,0 +1,24 @@
+program Demo;
+my_vars
+    a: int;
+    b: int;
+    c: int;
+    f: int;
+    # hola : string;
+main_course
+{ 
+    print("Haciendo WHILE");
+
+    # hola = "hola";
+    a = 5;
+    b = 2; 
+    c = a + b;
+    f = 10;
+
+    while (f > 0) {
+        print("Imprime F");
+        f = f - 1;
+    };
+   
+}
+ending

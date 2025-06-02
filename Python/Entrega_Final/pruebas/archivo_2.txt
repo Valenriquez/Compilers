@@ -1,0 +1,22 @@
+program Demo;
+my_vars
+    a: int;
+    b: int;
+    c: int;
+    f: int;
+main_course
+{ 
+    print("Haciendo un DO - WHILE");
+
+    a = 5;
+    b = 2; 
+    c = a + b;
+    f = 10;
+
+    do {
+        print("Probando Do while");
+        a = a - 1;
+    } while (a > 0);
+   
+}
+ending
