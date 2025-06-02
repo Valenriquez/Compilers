@@ -102,7 +102,7 @@ def p_body_rep(p):
 
 # → Manejar una declaración (asignación, condición, ciclo, llamada a función, impresión)
 def p_statement(p):
-    '''statement : assign
+    '''statement : assignment
                  | condition
                  | do_cycle
                  | cycle
@@ -123,8 +123,8 @@ add_operador: procesa =
 expresion: resuelve b + c, y deja el resultado en los stacks
 finalmente: add_assing() genera el cuádruplo final
 """ 
-def p_assign(p):
-    'assign : ID push_operand EQUALS add_operador expresion SEMICOLON'
+def p_assignment(p):
+    'assignment : ID push_operand EQUALS add_operador expresion SEMICOLON'
     st.add_assing()
     pass
 
@@ -280,7 +280,7 @@ def p_cte(p):
     p[0] = p[1]
 
 def p_funcs(p):
-    'funcs : VOID ID LPAREN list_params RPAREN LBRACE var_no_var body RBRACE SEMICOLON'
+    'funcs : VOID ID LPAREN list_parameters RPAREN LBRACE var_no_var body RBRACE SEMICOLON'
     pass
 
 def p_a_funcs(p):
@@ -293,8 +293,8 @@ def p_b_funcs(p):
                 | funcs'''
     pass
 
-def p_list_params(p):
-    '''list_params : empty
+def p_list_parameters(p):
+    '''list_parameters : empty
                    | ID COLON type more_params'''
     pass
 
