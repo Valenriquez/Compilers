@@ -165,7 +165,6 @@ def p_do_cycle(p):
 
 def p_goto_true(p):
     '''goto_true : '''
-    # Añadir la instrucción de salto condicional para el ciclo
     st.add_goto_true_while()
 
 def p_cycle(p):
@@ -175,180 +174,149 @@ def p_cycle(p):
 
 def p_goto_false(p):
     '''goto_false : '''
-    # Añadir la instrucción de salto condicional para if
     st.add_goto_false()
 
 
 def p_generate_goto(p):
     '''generate_goto :'''
-    # 3) Emitimos un GOTO incondicional al inicio del ciclo
     st.add_goto_loop()
 
 def p_finish_gotof(p):
     '''finish_gotof :'''
-    # 4) Parcheamos la dirección del GOTOF para que apunte justo después del GOTO
     st.patch_gotof()
 
 
 def p_cycle_start(p):
     '''cycle_start : '''
-    # Añadir la instrucción de salto condicional para el ciclo
     st.cycle_start()
 
 
 
 def p_condition(p):
     'condition : IF LPAREN expresion RPAREN goto_false body else_part'
-    # Manejar la declaración if-else
     st.add_goto_False_fill()
 
 
 def p_else_part(p):
     '''else_part : ELSE goto body
                  | empty'''
-    # Manejar la parte else de una declaración if-else
     pass
 
 ### SE MANDA A LLAMAR GO TO 
 def p_goto(p):
     '''goto : '''
-    # Añadir una instrucción de salto incondicional
     st.add_goto()
 
 def p_expresion(p):
     '''expresion : exp comparar_exp exp
                 | exp'''
-    # Manejar la evaluación de una expresión
     st.add_expresion()
 
 def p_comparar_exp(p):
     '''comparar_exp : LT
                     | GT
                     | NE'''
-    # Añadir un operador de comparación a la pila
     st.push_operador(p[1])
 
 def p_exp(p):
     '''exp : termino add_termino 
            | termino add_termino next_termino'''
-    # Manejar la evaluación de términos en una expresión
     pass
 
 def p_add_termino(p):
     '''add_termino : '''
-    # Añadir un término a la pila
     st.add_termino()
 
 def p_next_termino(p):
     '''next_termino : sum_rest exp '''
-    # Manejar la evaluación de términos adicionales
     pass
 
 def p_sum_rest(p):
     '''sum_rest : PLUS
                 | MINUS'''
-    # Añadir un operador de suma o resta a la pila
     st.push_operador(p[1])
     pass
 
 def p_termino(p):
     '''termino : factor add_factor next_factor
                | factor add_factor'''
-    # Manejar la evaluación de un término
     pass
 
 def p_next_factor(p):
     '''next_factor : mult_div termino'''
-    # Manejar la evaluación de factores adicionales
     pass
 
 def p_mult_div(p):
     '''mult_div : TIMES
                 | DIVIDE'''
-    # Añadir un operador de multiplicación o división a la pila
     st.push_operador(p[1])
     pass
 
 def p_factor(p):
     '''factor : LPAREN expresion RPAREN
               | id_cte'''
-    # Manejar la evaluación de un factor
     pass
 
 def p_add_factor(p):
     '''add_factor : '''
-    # Añadir un factor a la pila
     st.add_factor()
 
 def p_id_cte(p):
     '''id_cte : ID push_var
               | cte push_const'''
-    # Manejar identificadores y constantes
     pass
 
 def p_push_const(p):
     '''push_const : '''
-    # Añadir una constante a la pila
     st.push_operand(p[-1], True)
 
 def p_push_var(p):
     '''push_var : '''
-    # Añadir una variable a la pila
     st.push_operand(p[-1])
 
 def p_cte(p):
     '''cte : CTE_INT
            | CTE_FLOAT'''
-    # Manejar constantes enteras y de punto flotante
     p[0] = p[1]
 
 def p_funcs(p):
     'funcs : VOID ID LPAREN list_params RPAREN LBRACE var_no_var body RBRACE SEMICOLON'
-    # Manejar la declaración de funciones
     pass
 
 def p_a_funcs(p):
     '''a_funcs : empty
                | funcs b_funcs'''
-    # Manejar la declaración de funciones
     pass
 
 def p_b_funcs(p):
     '''b_funcs : funcs b_funcs
                 | funcs'''
-    # Manejar múltiples funciones
     pass
 
 def p_list_params(p):
     '''list_params : empty
                    | ID COLON type more_params'''
-    # Manejar la lista de parámetros de una función
     pass
 
 def p_more_params(p):
     '''more_params : empty
                    | COMMA ID COLON type more_params'''
-    # Manejar parámetros adicionales en una función
     pass
 
 def p_var_no_var(p):
     '''var_no_var : empty
                   | vars'''
-    # Manejar variables locales en una función
     pass
 
 def p_f_call(p):
     'f_call : ID LPAREN RPAREN SEMICOLON'
-    # Manejar la llamada a una función
     pass
 
 def p_empty(p):
     'empty :'
-    # Regla para manejar producción vacía
     pass
 
 def p_error(p):
-    # Manejo de errores de sintaxis
     if p:
         print(f"Syntax error at '{p.value}' (line {p.lineno})")
     else:
