@@ -163,9 +163,20 @@ def p_do_cycle(p):
     # La segunda línea es tu “do‐while” original
     pass
 
+def p_goto_true(p):
+    '''goto_true : '''
+    # Añadir la instrucción de salto condicional para el ciclo
+    st.add_goto_true_while()
+
 def p_cycle(p):
     '''cycle : WHILE cycle_start LPAREN expresion RPAREN goto_false body generate_goto finish_gotof'''
     pass
+
+
+def p_goto_false(p):
+    '''goto_false : '''
+    # Añadir la instrucción de salto condicional para if
+    st.add_goto_false()
 
 
 def p_generate_goto(p):
@@ -185,20 +196,12 @@ def p_cycle_start(p):
     st.cycle_start()
 
 
-def p_goto_true(p):
-    '''goto_true : '''
-    # Añadir la instrucción de salto condicional para el ciclo
-    st.add_goto_true_while()
 
 def p_condition(p):
     'condition : IF LPAREN expresion RPAREN goto_false body else_part'
     # Manejar la declaración if-else
     st.add_goto_False_fill()
 
-def p_goto_false(p):
-    '''goto_false : '''
-    # Añadir la instrucción de salto condicional para if
-    st.add_goto_false()
 
 def p_else_part(p):
     '''else_part : ELSE goto body
@@ -206,6 +209,7 @@ def p_else_part(p):
     # Manejar la parte else de una declaración if-else
     pass
 
+### SE MANDA A LLAMAR GO TO 
 def p_goto(p):
     '''goto : '''
     # Añadir una instrucción de salto incondicional

@@ -59,6 +59,7 @@ class SymbolTable:
             raise ValueError(f"Variable '{name}' already exists in the var_table.")
         self.var_table[name] = {'type': var_type, 'memory_address': 0}
         self.add_memory_address(name)
+        print(f"Variable '{name}' of type '{var_type}' added with memory address {self.var_table[name]['memory_address']}.")
         self.debug_stacks("después de push_variable")
 
     def get_variable(self, name):
@@ -122,15 +123,12 @@ class SymbolTable:
         if self.stack_operators:
             op = self.stack_operators[-1]
             if op == '*' or op == '/':
-                right_operand = self.stack_operands.pop()
-                left_operand = self.stack_operands.pop()
-                right_operand_tipo = self.stack_types.pop()
-                left_operand_tipo = self.stack_types.pop()
+                right_operand, right_operand_type = self.stack_operands.pop(),self.stack_types.pop()
+                left_operand , left_operand_type= self.stack_operands.pop(), self.stack_types.pop()
                 operator = self.stack_operators.pop()
-
-                res_tipo = self.semantic_cube(operator, left_operand_tipo, right_operand_tipo)
+                res_tipo = self.semantic_cube(operator, left_operand_type, right_operand_type)
                 if res_tipo == 'error':
-                    raise ValueError(f"Invalid operation: {left_operand_tipo} {operator} {right_operand_tipo}")
+                    raise ValueError(f"Invalid operation: {left_operand_type} {operator} {right_operand_type}")
 
                 elif res_tipo == 'int':
                     res_address = self.var_temp_int
@@ -152,15 +150,13 @@ class SymbolTable:
         if self.stack_operators:
             op = self.stack_operators[-1]
             if op == '+' or op == '-':
-                right_operand = self.stack_operands.pop()
-                left_operand = self.stack_operands.pop()
-                right_operand_tipo = self.stack_types.pop()
-                left_operand_tipo = self.stack_types.pop()
+                right_operand, right_operand_type = self.stack_operands.pop(),self.stack_types.pop()
+                left_operand , left_operand_type= self.stack_operands.pop(), self.stack_types.pop()
                 operator = self.stack_operators.pop()
 
-                res_tipo = self.semantic_cube(operator, left_operand_tipo, right_operand_tipo)
+                res_tipo = self.semantic_cube(operator, left_operand_type, right_operand_type)
                 if res_tipo == 'error':
-                    raise ValueError(f"Invalid operation: {left_operand_tipo} {operator} {right_operand_tipo}")
+                    raise ValueError(f"Invalid operation: {left_operand_type} {operator} {right_operand_type}")
 
                 elif res_tipo == 'int':
                     res_address = self.var_temp_int
@@ -182,13 +178,11 @@ class SymbolTable:
         if self.stack_operators:
             op = self.stack_operators[-1]
             if op == '>' or op == '<' or op == '!=':
-                right_operand = self.stack_operands.pop()
-                left_operand = self.stack_operands.pop()
-                right_operand_tipo = self.stack_types.pop()
-                left_operand_tipo = self.stack_types.pop()
+                right_operand, right_operand_type = self.stack_operands.pop(),self.stack_types.pop()
+                left_operand , left_operand_type= self.stack_operands.pop(), self.stack_types.pop()
                 operator = self.stack_operators.pop()
 
-                res_tipo = self.semantic_cube(operator, left_operand_tipo, right_operand_tipo)
+                res_tipo = self.semantic_cube(operator, left_operand_type, right_operand_type)
                 if res_tipo == 'bool':
                     self.var_temp_bool += 1
                     res_address = self.var_temp_bool
@@ -197,30 +191,29 @@ class SymbolTable:
                     self.stack_quadruples.append([operator, left_operand, right_operand, res_address])
                     self.debug_stacks("if bool add_expresion")
                 else:
-                    raise ValueError(f"Invalid operation: {left_operand_tipo} {operator} {right_operand_tipo}")
+                    raise ValueError(f"Invalid operation: {left_operand_type} {operator} {right_operand_type}")
 
     def add_assing(self):
         # Añadir una asignación
         if self.stack_operators:
             op = self.stack_operators[-1]
             if op == '=':
-                right_operand, right_operand_tipo = self.stack_operands.pop(), self.stack_types.pop()
-                left_operand, left_operand_tipo = self.stack_operands.pop() , self.stack_types.pop()
+                right_operand, right_operand_type = self.stack_operands.pop(), self.stack_types.pop()
+                left_operand, left_operand_type = self.stack_operands.pop() , self.stack_types.pop()
                 operator = self.stack_operators.pop()
 
-                res_tipo = self.semantic_cube(operator, left_operand_tipo, right_operand_tipo)
+                res_tipo = self.semantic_cube(operator, left_operand_type, right_operand_type)
                 self.debug_stacks("add_assing")
 
                 if res_tipo != 'error':
                     self.stack_quadruples.append([operator, right_operand, None, left_operand])
                 else:
-                    raise ValueError(f"Invalid operation: {left_operand_tipo} {operator} {right_operand_tipo}")
+                    raise ValueError(f"Invalid operation: {left_operand_type} {operator} {right_operand_type}")
 
     def add_print(self, string=[]):
         # Añadir una operación de impresión
         if string == []:
             right_operand = self.stack_operands.pop()
-            right_operand_tipo = self.stack_types.pop()
             self.stack_quadruples.append(['print', right_operand, None, None])
         else:
             self.stack_quadruples.append(['print', string, None, None])
@@ -238,35 +231,33 @@ class SymbolTable:
         self.stack_jumps.append(len(self.stack_quadruples) - 1)
         self.debug_stacks("add_goto_false")
 
-    
-
+    # para añadir go to
     def add_goto(self):
-        # Añadir una instrucción GOTO
         self.stack_quadruples.append(['GOTO', None, None, None])
         false_jump = self.stack_jumps.pop()
+        print("false_jump DE ADD GO TO: ", false_jump)
 
         self.stack_jumps.append(len(self.stack_quadruples) - 1)
         # Actualiza el ultimo campo, el destino del salto 
+        # LLENANDO EL GOTOF CON len(self.stack_quadruples)
         self.stack_quadruples[false_jump][-1] = len(self.stack_quadruples)
         self.debug_stacks("add_goto")
 
-
+    # para parchear go to false
     def add_goto_False_fill(self):
-        # Completar una instrucción GOTO
         false_jump = self.stack_jumps.pop()
+        print("false_jump DE ADD GO TO FALSE FILL : ", false_jump)
+
         self.stack_quadruples[false_jump][-1] = len(self.stack_quadruples)
         self.debug_stacks("add_goto_False_fill")
 
-
+    # para empezar ciclo while o do while
     def cycle_start(self):
-        # puntero para luego regresarse 
-        # Marcar el inicio del ciclo while
         self.stack_jumps.append(len(self.stack_quadruples))
         self.debug_stacks("cycle_start")
 
-    
+    # para hacer un go to true
     def add_goto_true_while(self):
-        # Añadir una instrucción GOTOV para el ciclo while
         condition = self.stack_operands.pop()
         condition_type = self.stack_types.pop()
         
@@ -278,10 +269,10 @@ class SymbolTable:
         self.debug_stacks("add_goto_true_while")
 
 
-
+    # Recuperamos la “etiqueta_inicio” que guardamos en cycle_start()
     def add_goto_loop(self):
-        # Recuperamos la “etiqueta_inicio” que guardamos en cycle_start()
         etiqueta_inicio = self.stack_jumps.pop() - 1   # esta stack_jumps era la primera que ingresó cycle_start()
+        print("etiqueta_inicio: ", etiqueta_inicio)
         # Insertamos el GOTO
         self.stack_quadruples.append(['GOTO', None, None, etiqueta_inicio])
         # Ahora “etiqueta_fin” = len(cuadruplos) (la posicion a parchear)
@@ -290,7 +281,6 @@ class SymbolTable:
 
     def patch_gotof(self):
         self.debug_stacks("antes de: patch_gotof")
-
         # Recuperamos la posición del GOTOF que creamos en add_gotof_placeholder()
         pos_gotof = self.stack_jumps.pop() + 1
         # “etiqueta_fin” es la posición actual (primer cuadruplo fuera del cuerpo)

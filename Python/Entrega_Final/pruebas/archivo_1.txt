@@ -15,6 +15,9 @@ main_course
     if (c > 10) {
         print("C es mayor a 10");
     }  
+    else {
+        print("C es menor a 10");
+    }
 
 }
 ending
