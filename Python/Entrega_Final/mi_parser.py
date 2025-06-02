@@ -158,13 +158,13 @@ def p_addPrintString(p):
 
 
 def p_do_cycle(p):
-    '''do_cycle : DO cycle_start body WHILE LPAREN expresion RPAREN goto_true SEMICOLON'''
+    '''do_cycle : DO cycle_start body WHILE LPAREN expresion RPAREN goto_true'''
     # La primera línea es “while”
     # La segunda línea es tu “do‐while” original
     pass
 
 def p_cycle(p):
-    '''cycle : WHILE cycle_start LPAREN expresion RPAREN goto_false body generate_goto finish_gotof SEMICOLON'''
+    '''cycle : WHILE cycle_start LPAREN expresion RPAREN goto_false body generate_goto finish_gotof'''
     pass
 
 
@@ -354,50 +354,3 @@ def p_error(p):
 def build_parser():
     return yacc.yacc(write_tables=False, debug=False)
 
-
-
-
-# # Configurar el logger
-# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-# # Cargar el lexer
- 
-#  Cargando el Archivo
-# script_dir = os.path.dirname(os.path.abspath(__file__))
-# file_path = os.path.join(script_dir, 'archivo.txt')
-# with open(file_path, 'r') as file:
-#     data = file.read()
-
-# Probar el parser
-# parser.parse(data, tracking=True)
-# print(variable_table.stack_operands)
-# print(variable_table.stack_operators)
-# print(variable_table.stack_types)
-# print(variable_table.stack_jumps)
-# print(variable_table.stack_quadruples)
-
-# def invert_dict(d):
-#     return {v: k for k, v in d.items()}
-
-# constant_table = invert_dict(variable_table.constant_table)
-
-
-# print(">>> Cuadruplos generados hasta el while:")
-# for i, q in enumerate(variable_table.stack_quadruples):
-#     print(i, q)
-
-# # Crear la máquina virtual e inicializar la memoria
-# vm = VirtualMachine(constant_table)
-
-# vm.initialize_memory()
-
-# # Configurar la memoria con las constantes cargadas
-# print("constantes : --------")
-# for address, value in constant_table.items():
-#     vm.set_memory(address, value)
-
-# # Cargar y ejecutar los cuádruplos
-# vm.load_quadruples(variable_table.stack_quadruples)
-# print(variable_table.stack_quadruples)
-
-# print("EJECUTAR------")
-# vm.execute()

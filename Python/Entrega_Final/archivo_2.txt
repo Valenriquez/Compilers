@@ -16,7 +16,7 @@ main_course
     do {
         print("Probando Do while");
         a = a - 1;
-    } while (a > 0);
+    } while (a > 0)
    
 }
 ending

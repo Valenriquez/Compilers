@@ -72,7 +72,8 @@ class VirtualMachine:
                 if self.memory[left]:
                     self.instruction_pointer = result
                     continue
-            elif op == 'GOTOF':   # go-to si Falso
+            elif op == 'GOTOF':   # go-to si Falso, si es
+                #print(f"[DEBUG] Dirección 401 contiene: {self.memory[401]}")
                 if not self.memory[left]:
                     self.instruction_pointer = result
                     continue
